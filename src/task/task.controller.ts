@@ -1,8 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { FindAllParameters, TaskDTO } from './task.dto';
 import { TaskService } from './task.service';
+import { AuthGuard } from 'src/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('task')
 export class TaskController {
     

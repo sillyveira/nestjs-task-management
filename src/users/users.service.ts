@@ -28,7 +28,7 @@ export class UsersService {
     }
 
     findByUsername(user: string): UserDTO | undefined {
-        if(!user) throw new HttpException('Informe um nome de usuário.', HttpStatus.NOT_ACCEPTABLE);
+        if(!user) throw new HttpException('Informe um nome de usuário.', HttpStatus.BAD_REQUEST);
 
         const userExists = this.users.find((u) => u.username === user)
 

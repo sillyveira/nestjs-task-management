@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { AuthBodyDTO, AuthResponseDTO } from './auth.dto';
 import { hashSync as bcrypt } from 'bcrypt';
 import { UsersService } from 'src/users/users.service';
+
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService){}

@@ -20,7 +20,7 @@ export class AuthService {
     if (!body.username || !body.password) {
       throw new HttpException(
         'Está faltando credenciais.',
-        HttpStatus.NOT_ACCEPTABLE,
+        HttpStatus.BAD_REQUEST,
       );
     }
 
