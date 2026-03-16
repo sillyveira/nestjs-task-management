@@ -16,7 +16,7 @@ export class AuthService {
     this.jwtExpirrationTimeInMs = this.configService.get<number>("JWT_EXPIRATION")
   }
 
-  signIn(body: AuthBodyDTO) : AuthResponseDTO {
+  async signIn(body: AuthBodyDTO) : Promise<AuthResponseDTO> {
     if (!body.username || !body.password) {
       throw new HttpException(
         'Está faltando credenciais.',
@@ -24,7 +24,7 @@ export class AuthService {
       );
     }
 
-    const user = this.usersService.findByUsername(body.username)
+    const user = await this.usersService.findByUsername(body.username)
 
     if (user === undefined) throw new HttpException(
         'Credenciais inválidas.',

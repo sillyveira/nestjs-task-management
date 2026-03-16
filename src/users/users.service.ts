@@ -1,12 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserDTO } from './user.dto';
-import {v4 as uuid} from 'uuid';
-
-import { hashSync as bcrypt } from 'bcrypt';
+import { hash as bcrypt } from 'bcrypt';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-    private users: UserDTO[]  = [
+    constructor(private prisma: PrismaService) { }
+
+    private users: UserDTO[] = [
         {
             id: '1',
             username: 'user',
@@ -14,29 +16,34 @@ export class UsersService {
         }
     ]
 
-    create(newUser: UserDTO){
-        const userExists =  this.users.find((user: UserDTO) => newUser.username === user.username)
+    async create(newUser: UserDTO) {
+        newUser.password = await bcrypt(newUser.password, 10);
 
-        if (!userExists) {
-            newUser.id = uuid();
-            newUser.password = bcrypt(newUser.password, 10);
-            this.users.push(newUser);
-            return this.users
+        try {
+            const result = await this.prisma.user.create({
+                data: {
+                    username: newUser.username,
+                    password: newUser.password,
+                },
+                select: { // removes the password
+                    id: true,
+                    username: true
+                }
+            });
+            return result;
+        } catch (e: any) {
+            // 'P2002' = unique constraint failed
+            if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+                throw new HttpException('Esse nome de usuário já existe.', HttpStatus.NOT_ACCEPTABLE);
+            }
+            throw e;
         }
-
-        throw new HttpException('Esse nome de usuário já existe.', HttpStatus.NOT_ACCEPTABLE);
     }
 
-    findByUsername(user: string): UserDTO | undefined {
-        if(!user) throw new HttpException('Informe um nome de usuário.', HttpStatus.BAD_REQUEST);
+    async findByUsername(user: string): Promise<UserDTO | undefined> {
+        if (!user) throw new HttpException('Informe um nome de usuário.', HttpStatus.BAD_REQUEST);
 
-        const userExists = this.users.find((u) => u.username === user)
-
-        if(userExists){
-            return userExists;
-        }
-
-        // user not found
-        return undefined;
+        const userExists = await this.prisma.user.findUnique({ where: { username: user } });
+        return userExists as unknown as UserDTO | undefined;
     }
 }
